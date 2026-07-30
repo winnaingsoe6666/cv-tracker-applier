@@ -1,26 +1,53 @@
 @import "tailwindcss";
 
+/* CareerForge — enterprise workstation theme (dark graphite + emerald signal) */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #0b0e13;
+  --surface: #11151d;
+  --surface-2: #171c26;
+  --border: #232a37;
+  --border-strong: #303948;
+  --foreground: #e8ebf0;
+  --muted: #8b94a5;
+  --faint: #5b6474;
+  --accent: #34d399;
+  --accent-dim: #10b981;
+  --warn: #fbbf24;
+  --danger: #f87171;
+  --info: #60a5fa;
 }
 
 @theme inline {
   --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface2: var(--surface-2);
+  --color-edge: var(--border);
+  --color-edge-strong: var(--border-strong);
   --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-faint: var(--faint);
+  --color-accent: var(--accent);
+  --color-accent-dim: var(--accent-dim);
+  --color-warn: var(--warn);
+  --color-danger: var(--danger);
+  --color-info: var(--info);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  font-feature-settings: "ss01", "cv11";
+}
+
+::selection {
+  background: rgba(52, 211, 153, 0.25);
+}
+
+/* Thin scrollbars for the workstation feel */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
 }

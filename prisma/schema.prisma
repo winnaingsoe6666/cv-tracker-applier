@@ -1,0 +1,189 @@
+// CareerForge — premium job tracker, matcher & applier
+// Local dev uses SQLite. For production, switch provider to "postgresql"
+// and point DATABASE_URL at Supabase/Postgres (see README).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                   String   @id @default(cuid())
+  email                String   @unique
+  passwordHash         String   @default("")
+  name                 String
+  image                String?  // Google OAuth avatar
+  headline             String?  // e.g. "Senior Backend Engineer"
+  phone                String?
+  linkedin             String?
+  location             String?
+  plan                 String   @default("FREE") // FREE | PRO
+  gateAtsThreshold     Int      @default(75)
+  gateMatchThreshold   Int      @default(70)
+  apiToken             String?  @unique // for the browser extension (semi-auto)
+  reminderDays         Int      @default(7) // follow-up reminder interval in days
+  isAdmin              Boolean  @default(false)
+  stripeCustomerId     String?  @unique
+  stripeSubscriptionId String?
+  createdAt            DateTime @default(now())
+
+  resumes      Resume[]
+  jobs         Job[]
+  applications Application[]
+  coverLetters CoverLetter[]
+  accounts     Account[]
+  shareTokens  ShareToken[]
+}
+
+// NextAuth OAuth accounts (Google, GitHub, etc.)
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Resume {
+  id             String   @id @default(cuid())
+  userId         String
+  title          String
+  sourceFileName String?
+  rawText        String
+  parsedJson     String // structured extraction (contact, sections, skills, metrics)
+  isBase         Boolean  @default(true)
+  parentId       String? // set when this is a job-tailored variant
+  roleFamily     String?  // BACKEND | FULLSTACK | DATA | DEVOPS | MOBILE | OTHER
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  atsReports   AtsReport[]
+  matchReports MatchReport[]
+  applications Application[]
+  coverLetters CoverLetter[]
+}
+
+model AtsReport {
+  id            String   @id @default(cuid())
+  resumeId      String
+  jobId         String? // when scored against a specific JD
+  score         Int
+  breakdownJson String // category scores + findings with severity and fixes
+  createdAt     DateTime @default(now())
+
+  resume Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  job    Job?   @relation(fields: [jobId], references: [id], onDelete: SetNull)
+}
+
+model Job {
+  id             String   @id @default(cuid())
+  userId         String
+  title          String
+  company        String
+  location       String?
+  market         String   @default("REMOTE") // TH | MY | SG | REMOTE | OTHER
+  url            String?
+  source         String? // linkedin | jobstreet | jobsdb | company site | other
+  salaryMin      Int?
+  salaryMax      Int?
+  currency       String?
+  seniority      String? // JUNIOR | MID | SENIOR | LEAD
+  description    String
+  worthinessJson String? // job quality heuristics snapshot
+  createdAt      DateTime @default(now())
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  atsReports   AtsReport[]
+  matchReports MatchReport[]
+  applications Application[]
+  coverLetters CoverLetter[]
+}
+
+model MatchReport {
+  id            String   @id @default(cuid())
+  jobId         String
+  resumeId      String
+  score         Int
+  breakdownJson String // matched/missing skills, must-haves, seniority, location risk
+  createdAt     DateTime @default(now())
+
+  job    Job    @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  resume Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+}
+
+model CoverLetter {
+  id        String   @id @default(cuid())
+  userId    String
+  jobId     String
+  resumeId  String?
+  template  String // DIRECT | NARRATIVE | TECHNICAL
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  job    Job     @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  resume Resume? @relation(fields: [resumeId], references: [id], onDelete: SetNull)
+}
+
+model Application {
+  id                 String    @id @default(cuid())
+  userId             String
+  jobId              String    @unique
+  resumeId           String?
+  mode               String    @default("ASSISTED") // ASSISTED | SEMI
+  status             String    @default("SAVED") // SAVED | TAILORING | READY | APPLIED | SCREENING | INTERVIEW | OFFER | REJECTED
+  atsScoreSnapshot   Int?
+  matchScoreSnapshot Int?
+  resumeVariantTag   String?   // snapshot of resume.roleFamily at time of APPLIED (for A/B tracking)
+  checklistJson      String?   // assisted-apply checklist state
+  notes              String?
+  appliedAt          DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  user   User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  job    Job            @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  resume Resume?        @relation(fields: [resumeId], references: [id], onDelete: SetNull)
+  events OutcomeEvent[]
+}
+
+model OutcomeEvent {
+  id            String   @id @default(cuid())
+  applicationId String
+  type          String   @default("STATUS_CHANGE") // STATUS_CHANGE | REMINDER_SENT
+  fromStatus    String
+  toStatus      String
+  createdAt     DateTime @default(now())
+
+  application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+}
+
+// Shareable read-only tokens for match reports
+model ShareToken {
+  id        String   @id @default(cuid())
+  token     String   @unique @default(cuid())
+  userId    String
+  type      String   @default("MATCH_REPORT")
+  refId     String   // matchReportId
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}

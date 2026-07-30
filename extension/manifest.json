@@ -1,0 +1,60 @@
+{
+  "manifest_version": 3,
+  "name": "CareerForge — Push Job",
+  "version": "1.0.0",
+  "description": "Push any job posting to CareerForge with one click. Scrapes title, company, and description from LinkedIn, JobStreet, JobsDB, Indeed, Seek, Glassdoor, and most job boards.",
+  "icons": {
+    "16": "icons/icon-16.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "48": "icons/icon-48.png",
+      "128": "icons/icon-128.png"
+    },
+    "default_title": "Push Job to CareerForge"
+  },
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage"
+  ],
+  "host_permissions": [
+    "*://*.linkedin.com/*",
+    "*://*.jobstreet.com/*",
+    "*://*.jobstreet.com.my/*",
+    "*://*.jobsdb.com/*",
+    "*://*.indeed.com/*",
+    "*://*.au.indeed.com/*",
+    "*://*.seek.com/*",
+    "*://*.seek.com.au/*",
+    "*://*.glassdoor.com/*",
+    "*://*.glassdoor.sg/*",
+    "http://localhost:3000/*",
+    "http://localhost/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "*://*.linkedin.com/jobs/*",
+        "*://*.jobstreet.com/*",
+        "*://*.jobstreet.com.my/*",
+        "*://*.jobsdb.com/*",
+        "*://*.indeed.com/*",
+        "*://*.au.indeed.com/*",
+        "*://*.seek.com/*",
+        "*://*.seek.com.au/*",
+        "*://*.glassdoor.com/job-listing/*",
+        "*://*.glassdoor.sg/job-listing/*"
+      ],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "background": {
+    "service_worker": "background.js"
+  }
+}

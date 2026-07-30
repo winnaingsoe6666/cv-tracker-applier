@@ -1,65 +1,84 @@
-import Image from "next/image";
+import Link from "next/link";
+import { btnPrimary, btnSecondary } from "@/components/ui";
 
-export default function Home() {
+const FEATURES = [
+  {
+    title: "ATS Score Engine",
+    body: "Explainable 0–100 scoring across contact, structure, impact, keywords and formatting risk — with the exact fix for every point lost.",
+  },
+  {
+    title: "JD Match Reports",
+    body: "Skills overlap, must-have verification, seniority fit and visa/eligibility risk for Thailand, Malaysia, Singapore and remote roles.",
+  },
+  {
+    title: "Quality Gate",
+    body: "The app blocks weak applications before you send them. Fewer, sharper applications is how you raise your interview rate.",
+  },
+  {
+    title: "Cover Letter Studio",
+    body: "Three recruiter-grade templates — Direct, Narrative, Technical — pre-filled from your resume and the job description.",
+  },
+  {
+    title: "Recruiter Pipeline",
+    body: "A real pipeline board from Saved to Offer, with every score snapshotted at apply time so you learn what converts.",
+  },
+  {
+    title: "Semi-Auto Apply",
+    body: "Browser extension captures job pages and fills application forms from your approved profile. You always confirm the submit.",
+  },
+];
+
+export default function LandingPage() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col px-6">
+      <header className="flex items-center justify-between py-6">
+        <div className="flex items-center gap-2">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent-dim font-bold text-[#06281c]">C</div>
+          <span className="text-lg font-semibold tracking-tight">CareerForge</span>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+        <nav className="flex items-center gap-3">
+          <Link href="/login" className={btnSecondary}>
+            Sign in
+          </Link>
+          <Link href="/register" className={btnPrimary}>
+            Create account
+          </Link>
+        </nav>
+      </header>
+
+      <section className="py-20 text-center">
+        <p className="mx-auto mb-4 w-fit rounded-full border border-edge bg-surface px-4 py-1 text-xs font-medium tracking-wide text-accent">
+          FOR TH · MY · SG · REMOTE WORLDWIDE
+        </p>
+        <h1 className="mx-auto max-w-3xl text-5xl font-bold leading-tight tracking-tight">
+          Apply fewer. <span className="text-accent">Interview more.</span>
+        </h1>
+        <p className="mx-auto mt-5 max-w-2xl text-lg text-muted">
+          CareerForge is a recruiter-grade workstation that scores your resume like an ATS, matches it against every job
+          description, and refuses to let a weak application out the door.
+        </p>
+        <div className="mt-8 flex justify-center gap-4">
+          <Link href="/register" className={btnPrimary}>
+            Start free — 2 resumes, 10 jobs
+          </Link>
+          <Link href="/login" className={btnSecondary}>
+            Sign in
+          </Link>
         </div>
-      </main>
-    </div>
+      </section>
+
+      <section className="grid gap-4 pb-24 sm:grid-cols-2 lg:grid-cols-3">
+        {FEATURES.map((f) => (
+          <div key={f.title} className="rounded-xl border border-edge bg-surface p-6">
+            <h3 className="text-sm font-semibold text-foreground">{f.title}</h3>
+            <p className="mt-2 text-sm leading-relaxed text-muted">{f.body}</p>
+          </div>
+        ))}
+      </section>
+
+      <footer className="border-t border-edge py-8 text-center text-xs text-faint">
+        CareerForge — professional application quality control. No chat bots. No spray-and-pray.
+      </footer>
+    </main>
   );
 }

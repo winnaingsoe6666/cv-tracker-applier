@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CareerForge — Push Job</title>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #161b22;
+      --surface2: #1c2128;
+      --border: #30363d;
+      --border-strong: #484f58;
+      --fg: #e6edf3;
+      --muted: #8b949e;
+      --faint: #6e7681;
+      --accent: #3fb950;
+      --accent-dim: #238636;
+      --warn: #d29922;
+      --danger: #f85149;
+      --info: #58a6ff;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      width: 380px;
+      min-height: 200px;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    /* ── Header ── */
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+    }
+    .header-logo {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      background: var(--accent-dim);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: -0.5px;
+      flex-shrink: 0;
+    }
+    .header-title { font-size: 13px; font-weight: 600; color: var(--fg); }
+    .header-sub { font-size: 10px; color: var(--muted); margin-top: 1px; }
+    .header-settings-btn {
+      margin-left: auto;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1;
+      padding: 2px 4px;
+      border-radius: 4px;
+      transition: color 0.15s, background 0.15s;
+    }
+    .header-settings-btn:hover { color: var(--fg); background: var(--surface2); }
+
+    /* ── Content ── */
+    .content { padding: 14px 16px; }
+
+    /* Status / detection card */
+    .detect-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-bottom: 12px;
+    }
+    .detect-card.detected { border-color: rgba(63,185,80,0.35); background: rgba(63,185,80,0.05); }
+    .detect-card.not-detected { border-color: rgba(248,81,73,0.25); background: rgba(248,81,73,0.04); }
+
+    .detect-label {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .detect-label.ok { color: var(--accent); }
+    .detect-label.fail { color: var(--danger); }
+
+    .job-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--fg);
+      margin-bottom: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .job-company {
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .no-job-msg {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    /* Market selector */
+    .field-label {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--faint);
+      margin-bottom: 4px;
+    }
+    select, input[type="text"] {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--fg);
+      padding: 7px 10px;
+      font-size: 12px;
+      outline: none;
+      transition: border-color 0.15s;
+      font-family: inherit;
+      appearance: none;
+      -webkit-appearance: none;
+      cursor: pointer;
+    }
+    select:focus, input[type="text"]:focus {
+      border-color: var(--accent);
+    }
+    input[type="text"]::placeholder { color: var(--faint); }
+
+    .field { margin-bottom: 10px; }
+
+    /* Push button */
+    .btn-push {
+      width: 100%;
+      background: var(--accent-dim);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 9px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      margin-top: 4px;
+    }
+    .btn-push:hover:not(:disabled) { background: var(--accent); }
+    .btn-push:active:not(:disabled) { transform: scale(0.98); }
+    .btn-push:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    /* Toast / status bar */
+    .toast {
+      display: none;
+      margin-top: 10px;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 500;
+      line-height: 1.4;
+    }
+    .toast.success {
+      display: block;
+      background: rgba(63,185,80,0.12);
+      border: 1px solid rgba(63,185,80,0.3);
+      color: var(--accent);
+    }
+    .toast.error {
+      display: block;
+      background: rgba(248,81,73,0.1);
+      border: 1px solid rgba(248,81,73,0.3);
+      color: var(--danger);
+    }
+    .toast a {
+      color: var(--info);
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .toast a:hover { text-decoration: underline; }
+
+    /* Token panel (settings view) */
+    .token-panel { display: none; }
+    .token-panel.active { display: block; }
+    .main-panel { display: block; }
+    .main-panel.hidden { display: none; }
+
+    /* Divider */
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: 12px 0;
+    }
+
+    /* Description preview */
+    .desc-preview {
+      font-size: 10px;
+      color: var(--faint);
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 6px 8px;
+      max-height: 60px;
+      overflow: hidden;
+      line-height: 1.5;
+      margin-top: 6px;
+      position: relative;
+    }
+    .desc-preview::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 20px;
+      background: linear-gradient(transparent, var(--surface2));
+    }
+
+    /* Loading spinner */
+    .spinner {
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Worthiness badge */
+    .worthiness {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 20px;
+      margin-left: 6px;
+    }
+    .worthiness.good { background: rgba(63,185,80,0.15); color: var(--accent); }
+    .worthiness.ok { background: rgba(210,153,34,0.15); color: var(--warn); }
+    .worthiness.low { background: rgba(248,81,73,0.12); color: var(--danger); }
+
+    /* Footer */
+    .footer {
+      padding: 8px 16px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .footer-text { font-size: 10px; color: var(--faint); }
+    .footer-link {
+      font-size: 10px;
+      color: var(--info);
+      text-decoration: none;
+      cursor: pointer;
+      background: none;
+      border: none;
+      padding: 0;
+      font-family: inherit;
+    }
+    .footer-link:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <!-- ── Header ── -->
+  <div class="header">
+    <div class="header-logo">CF</div>
+    <div>
+      <div class="header-title">CareerForge</div>
+      <div class="header-sub">Push Job to Workbench</div>
+    </div>
+    <button class="header-settings-btn" id="toggleSettings" title="Settings">⚙</button>
+  </div>
+
+  <!-- ── Main panel ── -->
+  <div class="content">
+    <div class="main-panel" id="mainPanel">
+
+      <!-- Job detection card -->
+      <div class="detect-card" id="detectCard">
+        <div class="detect-label" id="detectLabel">Detecting job…</div>
+        <div id="jobInfo">
+          <div class="job-title" id="jobTitle" style="color:var(--muted)">Scanning page…</div>
+          <div class="job-company" id="jobCompany"></div>
+          <div class="desc-preview" id="descPreview" style="display:none"></div>
+        </div>
+      </div>
+
+      <!-- Market selector -->
+      <div class="field">
+        <div class="field-label">Market</div>
+        <select id="market">
+          <option value="REMOTE">🌏 Remote (Global)</option>
+          <option value="TH">🇹🇭 Thailand</option>
+          <option value="MY">🇲🇾 Malaysia</option>
+          <option value="SG">🇸🇬 Singapore</option>
+          <option value="OTHER">Other</option>
+        </select>
+      </div>
+
+      <!-- Push button -->
+      <button class="btn-push" id="pushBtn" disabled>
+        <div class="spinner" id="pushSpinner" style="display:none"></div>
+        <span id="pushLabel">Push to CareerForge</span>
+      </button>
+
+      <!-- Toast -->
+      <div class="toast" id="toast"></div>
+    </div>
+
+    <!-- ── Settings / Token panel ── -->
+    <div class="token-panel" id="tokenPanel">
+      <div class="field">
+        <div class="field-label">CareerForge App URL</div>
+        <input type="text" id="appUrl" placeholder="http://localhost:3000" />
+      </div>
+      <div class="field">
+        <div class="field-label">API Token (from Settings → Extension)</div>
+        <input type="text" id="apiToken" placeholder="cf_xxxxxxxxxxxxxxxx…" />
+      </div>
+      <button class="btn-push" id="saveSettings">Save Settings</button>
+      <div class="toast" id="settingsToast"></div>
+      <div class="divider"></div>
+      <p style="font-size:10px; color:var(--faint); line-height:1.6;">
+        Generate a token in CareerForge → Settings → Browser Extension, then paste it here.
+        The extension will push job postings to your chosen app URL.
+      </p>
+    </div>
+  </div>
+
+  <!-- ── Footer ── -->
+  <div class="footer">
+    <span class="footer-text">CareerForge v1.0</span>
+    <button class="footer-link" id="openApp">Open app ↗</button>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
