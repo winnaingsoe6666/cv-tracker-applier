@@ -54,9 +54,12 @@ export function StudioClient({
   const [polished, setPolished] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  useEffect(() => {
-    if (activeLetter) setEditContent(activeLetter.content);
-  }, [activeLetter]);
+  // Sync editContent when activeLetter changes (derived state pattern)
+  const [prevLetterId, setPrevLetterId] = useState<string | null>(null);
+  if (activeLetter?.id !== prevLetterId) {
+    setPrevLetterId(activeLetter?.id ?? null);
+    setEditContent(activeLetter?.content ?? "");
+  }
 
   async function generate() {
     setGenerating(true);
@@ -298,7 +301,7 @@ export function StudioClient({
               </div>
               <p className="text-sm font-medium text-foreground">No letter drafted yet</p>
               <p className="mt-1 max-w-sm text-xs text-muted">
-                Choose a template and click "Generate draft." The engine uses your match report's
+                Choose a template and click &quot;Generate draft.&quot; The engine uses your match report&apos;s
                 skills and your profile to pre-fill the letter — you review and personalise before
                 sending.
               </p>

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { btnPrimary, ScoreRing } from "@/components/ui";
 import { MatchReport } from "@/components/match-report";
 import { GateBanner } from "@/components/gate-banner";
@@ -147,9 +148,9 @@ export function WorkbenchClient({
           {resumes.length === 0 ? (
             <p className="text-sm text-muted">
               No resumes yet.{" "}
-              <a href="/resumes" className="text-accent underline underline-offset-2">
+              <Link href="/resumes" className="text-accent underline underline-offset-2">
                 Upload one first →
-              </a>
+              </Link>
             </p>
           ) : (
             <>
@@ -290,7 +291,7 @@ export function WorkbenchClient({
             </div>
             <p className="text-sm font-medium text-foreground">No match report yet</p>
             <p className="mt-1 max-w-sm text-xs text-muted">
-              Select a resume and click "Run match" to get your JD match score, skills gap, seniority
+              Select a resume and click &quot;Run match&quot; to get your JD match score, skills gap, seniority
               analysis, and ATS breakdown side-by-side.
             </p>
           </div>

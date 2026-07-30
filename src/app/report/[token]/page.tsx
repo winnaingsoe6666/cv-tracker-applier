@@ -28,6 +28,7 @@ export default async function PublicReportPage({
   if (!report) notFound();
 
   const breakdown: MatchBreakdown = JSON.parse(report.breakdownJson);
+  // eslint-disable-next-line react-hooks/purity -- server component, Date.now() is fine
   const daysLeft = Math.ceil((share.expiresAt.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
 
   return (
