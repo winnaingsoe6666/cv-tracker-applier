@@ -1,7 +1,7 @@
 import { requireUser } from "@/lib/session";
 import { PLANS, Plan } from "@/lib/constants";
 import { Card, CardTitle, Badge } from "@/components/ui";
-import { SettingsClient, ExtensionTokenPanel, PlanCardClient } from "./settings-client";
+import { SettingsClient, ExtensionTokenPanel, PlanCardClient, ProfileVisibility } from "./settings-client";
 
 export default async function SettingsPage() {
   const user = await requireUser();
@@ -14,7 +14,6 @@ export default async function SettingsPage() {
         <p className="mt-1 text-sm text-muted">Profile, plan, and quality gate thresholds.</p>
       </div>
 
-      {/* Plan card — interactive upgrade/manage */}
       <PlanCardClient
         plan={user.plan as Plan}
         planLabel={plan.label}
@@ -25,7 +24,6 @@ export default async function SettingsPage() {
         upgraded={false}
       />
 
-      {/* Profile + thresholds — editable */}
       <SettingsClient
         user={{
           name: user.name,
@@ -40,7 +38,11 @@ export default async function SettingsPage() {
         }}
       />
 
-      {/* Extension token — separate from save form */}
+      <ProfileVisibility
+        username={user.username ?? ""}
+        profilePublic={user.profilePublic}
+      />
+
       <ExtensionTokenPanel
         hasToken={!!user.apiToken}
         tokenSuffix={user.apiToken ? user.apiToken.slice(-8) : null}

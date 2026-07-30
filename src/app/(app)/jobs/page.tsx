@@ -5,6 +5,7 @@ import { MARKETS, STATUS_LABELS, PipelineStatus, PLANS, Plan } from "@/lib/const
 import { Badge, EmptyState, scoreTone } from "@/components/ui";
 import { JobForm } from "@/components/job-form";
 import { UpgradeBanner } from "@/components/upgrade-banner";
+import { SavedSearchesClient } from "./saved-searches-client";
 
 const statusTone: Record<string, "neutral" | "info" | "accent" | "warn" | "danger"> = {
   SAVED: "neutral",
@@ -19,11 +20,17 @@ const statusTone: Record<string, "neutral" | "info" | "accent" | "warn" | "dange
 
 export default async function JobsPage() {
   const user = await requireUser();
-  const jobs = await db.job.findMany({
-    where: { userId: user.id },
-    orderBy: { createdAt: "desc" },
-    include: { applications: true },
-  });
+  const [jobs, savedSearches] = await Promise.all([
+    db.job.findMany({
+      where: { userId: user.id },
+      orderBy: { createdAt: "desc" },
+      include: { applications: true },
+    }),
+    db.savedSearch.findMany({
+      where: { userId: user.id },
+      orderBy: { createdAt: "desc" },
+    }),
+  ]);
   const jobLimit = PLANS[(user.plan as Plan) ?? "FREE"].maxJobs;
 
   return (
@@ -73,6 +80,16 @@ export default async function JobsPage() {
             </Link>
           );
         })}
+      </div>
+
+      <div className="mt-8">
+        <SavedSearchesClient
+          initial={savedSearches.map((s) => ({
+            ...s,
+            lastNotifiedAt: s.lastNotifiedAt?.toISOString() ?? null,
+            createdAt: s.createdAt.toISOString(),
+          }))}
+        />
       </div>
     </div>
   );

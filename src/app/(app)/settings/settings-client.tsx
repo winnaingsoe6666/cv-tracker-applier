@@ -495,3 +495,82 @@ function ThresholdSlider({
     </div>
   );
 }
+
+// ─── Profile Visibility (public profile) ─────────────────────────────────────
+
+export function ProfileVisibility({
+  username: initialUsername,
+  profilePublic: initialPublic,
+}: {
+  username: string;
+  profilePublic: boolean;
+}) {
+  const router = useRouter();
+  const [username, setUsername] = useState(initialUsername);
+  const [isPublic, setIsPublic] = useState(initialPublic);
+  const [saving, setSaving] = useState(false);
+  const [msg, setMsg] = useState<{ text: string; ok: boolean } | null>(null);
+
+  async function save() {
+    setSaving(true);
+    setMsg(null);
+    const res = await fetch("/api/settings", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username: username || null, profilePublic: isPublic }),
+    });
+    setSaving(false);
+    if (res.ok) {
+      setMsg({ text: "Saved", ok: true });
+      router.refresh();
+    } else {
+      const d = await res.json().catch(() => ({}));
+      setMsg({ text: d.error ?? "Failed", ok: false });
+    }
+    setTimeout(() => setMsg(null), 3000);
+  }
+
+  const profileUrl = username ? `${typeof window !== "undefined" ? window.location.origin : ""}/u/${username}` : "";
+
+  return (
+    <Card>
+      <CardTitle sub="Let recruiters find your profile">Public Profile</CardTitle>
+      <div className="space-y-4">
+        <div>
+          <label className="mb-1 block text-[11px] font-medium text-faint">Username</label>
+          <input
+            className={inputCls}
+            placeholder="e.g. john-doe"
+            value={username}
+            onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))}
+          />
+          <p className="mt-1 text-[11px] text-faint">3–30 chars, lowercase letters, numbers, hyphens only.</p>
+        </div>
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm font-medium text-foreground">Make profile public</p>
+            <p className="text-[11px] text-faint">When enabled, anyone with the link can view your profile.</p>
+          </div>
+          <button
+            onClick={() => setIsPublic(!isPublic)}
+            className={`relative h-6 w-11 rounded-full transition ${isPublic ? "bg-accent" : "bg-surface2"}`}
+          >
+            <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition ${isPublic ? "left-5.5" : "left-0.5"}`} />
+          </button>
+        </div>
+        {isPublic && profileUrl && (
+          <div className="rounded-lg border border-accent/30 bg-accent/5 px-3 py-2">
+            <p className="text-[11px] text-faint">Your public profile:</p>
+            <p className="text-xs font-medium text-accent break-all">{profileUrl}</p>
+          </div>
+        )}
+        <div className="flex items-center gap-3">
+          <button onClick={save} disabled={saving} className={btnPrimary}>
+            {saving ? "Saving…" : "Save"}
+          </button>
+          {msg && <span className={`text-xs ${msg.ok ? "text-accent" : "text-danger"}`}>{msg.text}</span>}
+        </div>
+      </div>
+    </Card>
+  );
+}

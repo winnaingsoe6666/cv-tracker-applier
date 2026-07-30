@@ -27,6 +27,8 @@ model User {
   apiToken             String?  @unique // for the browser extension (semi-auto)
   reminderDays         Int      @default(7) // follow-up reminder interval in days
   isAdmin              Boolean  @default(false)
+  username             String?  @unique // public profile slug
+  profilePublic        Boolean  @default(false)
   stripeCustomerId     String?  @unique
   stripeSubscriptionId String?
   createdAt            DateTime @default(now())
@@ -37,6 +39,9 @@ model User {
   coverLetters CoverLetter[]
   accounts     Account[]
   shareTokens  ShareToken[]
+  savedSearches    SavedSearch[]
+  collaborationsOwned  Collaboration[] @relation("CollabOwner")
+  collabNotes      CollabNote[]
 }
 
 // NextAuth OAuth accounts (Google, GitHub, etc.)
@@ -162,6 +167,7 @@ model Application {
   job    Job            @relation(fields: [jobId], references: [id], onDelete: Cascade)
   resume Resume?        @relation(fields: [resumeId], references: [id], onDelete: SetNull)
   events OutcomeEvent[]
+  collabNotes CollabNote[]
 }
 
 model OutcomeEvent {
@@ -186,4 +192,43 @@ model ShareToken {
   createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// Saved job searches for alert digests
+model SavedSearch {
+  id             String    @id @default(cuid())
+  userId         String
+  label          String
+  query          String    // title keywords
+  market         String?
+  seniority      String?
+  minSalary      Int?
+  active         Boolean   @default(true)
+  lastNotifiedAt DateTime?
+  createdAt      DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// Team / recruiter collaboration
+model Collaboration {
+  id              String   @id @default(cuid())
+  ownerId         String
+  collaboratorEmail String // plain string, not a FK (collaborator may not have account yet)
+  role            String   @default("VIEWER") // VIEWER | EDITOR
+  createdAt       DateTime @default(now())
+
+  owner User @relation("CollabOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+}
+
+// Notes on applications from collaborators
+model CollabNote {
+  id            String   @id @default(cuid())
+  applicationId String
+  authorId      String
+  content       String
+  createdAt     DateTime @default(now())
+
+  application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  author      User        @relation(fields: [authorId], references: [id], onDelete: Cascade)
 }
