@@ -1,36 +1,64 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# CareerForge — Premium Job Tracker & Application Workstation
 
 ## Getting Started
 
-First, run the development server:
+### Local Development
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open http://localhost:3000
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Production Deployment
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+See [docs/deploy-vercel-supabase.md](docs/deploy-vercel-supabase.md)
+
+**Quick start:**
+1. Copy `.env.example` to `.env`
+2. Fill in Supabase + Stripe + OpenAI keys
+3. Run `./scripts/setup-supabase.sh`
+4. Deploy to Vercel
+
+## Architecture
+
+- **Frontend**: Next.js App Router + Tailwind v4
+- **Database**: Supabase Postgres (SQLite for local dev)
+- **Auth**: Auth.js (credentials + Google OAuth)
+- **Billing**: Stripe (Checkout + Webhook + Portal)
+- **Storage**: Supabase Storage (CV files)
+- **Extension**: Chrome Manifest V3
+
+## Documentation
+
+- [Deployment Guide](docs/deploy-vercel-supabase.md)
+- [Implementation Plan](docs/premium-job-applier-plan.md)
+- [Progress Tracker](docs/progress.md)
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|------------|
+| App | Next.js App Router + TypeScript |
+| UI | Tailwind v4 |
+| DB | Prisma + Supabase Postgres |
+| Auth | Auth.js credentials + Google OAuth |
+| Billing | Stripe (Checkout + Webhook + Portal) |
+| Extension | Chrome Manifest V3 |
+
+## Features
+
+- Resume upload/parse with ATS scoring
+- Job matching engine (skills, seniority, location)
+- Cover letter studio with 3 templates
+- Pipeline Kanban board
+- Chrome extension for job board scraping
+- Stripe billing (FREE/PRO plans)
+- Collaboration with notes
+- PWA support
 
 ## Learn More
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- [Next.js Documentation](https://nextjs.org/docs)
+- [Supabase Documentation](https://supabase.com/docs)
+- [Prisma Documentation](https://www.prisma.io/docs)

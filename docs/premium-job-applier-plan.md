@@ -27,7 +27,7 @@ todos:
   # ── Phase 3 — Scale polish ────────────────────────────────────────────────
   - id: deploy-production
     content: "Production deployment: Supabase Postgres + Vercel + env vars"
-    status: pending
+    status: in-progress
   - id: stripe-billing
     content: Real Stripe checkout + webhook → flip user.plan to PRO
     status: completed
@@ -288,6 +288,39 @@ extension/        Chrome extension (Phase 2 ✅)
 - MRR (monthly recurring revenue) from PRO conversions
 
 Target product claim: users apply **fewer, higher-fit** roles and see higher interview rate vs spray-and-pray trackers.
+
+## Phase 5 — AWS Migration (Future)
+
+> **Goal**: Migrate from Vercel+Supabase to AWS for better cost control and flexibility at scale.
+
+### 5a. Infrastructure
+- EC2 t2.micro (Next.js standalone server)
+- RDS Postgres (managed database)
+- S3 (CV file storage)
+- CloudFront (CDN + SSL)
+- Route 53 (DNS)
+
+### 5b. Migration path
+- Prisma → RDS Postgres connection
+- Supabase Storage → S3 bucket
+- Vercel Cron → EventBridge + Lambda
+- Auth.js → Cognito or keep Auth.js
+
+### 5c. Cost optimization
+- Reserved instances for predictable workloads
+- Spot instances for batch jobs
+- S3 lifecycle policies for old CVs
+- CloudFront caching
+
+### 5d. DevOps
+- GitHub Actions CI/CD
+- PM2 for process management
+- Nginx reverse proxy
+- Let's Encrypt SSL
+
+**Trigger**: When users > 1K or revenue > $1K/mo
+
+---
 
 ## Out of scope (all phases)
 
