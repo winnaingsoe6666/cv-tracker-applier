@@ -12,11 +12,12 @@ const LINKS = [
   { href: "/settings", label: "Settings" },
 ];
 
-export function NavLinks() {
+export function NavLinks({ isAdmin }: { isAdmin?: boolean }) {
   const pathname = usePathname();
+  const allLinks = isAdmin ? [...LINKS, { href: "/admin", label: "Admin" }] : LINKS;
   return (
     <nav className="flex flex-col gap-1 px-3 pt-2">
-      {LINKS.map((l) => {
+      {allLinks.map((l) => {
         const active = pathname === l.href || pathname.startsWith(l.href + "/");
         return (
           <Link

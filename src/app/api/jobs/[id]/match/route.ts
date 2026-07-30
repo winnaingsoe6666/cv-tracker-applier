@@ -4,12 +4,25 @@ import { apiUserId } from "@/lib/session";
 import { parseResumeText, ParsedResume } from "@/lib/parse";
 import { scoreMatch } from "@/lib/scoring/match";
 import { scoreAts } from "@/lib/scoring/ats";
+import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 
 /** Run (or re-run) the full analysis of a resume against this job:
  *  JD match report + JD-aware ATS report, and snapshot scores on the application. */
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const userId = await apiUserId();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  // Rate limit check
+  const user = await db.user.findUnique({ where: { id: userId }, select: { plan: true } });
+  const limit = user?.plan === "PRO" ? RATE_LIMITS.match.pro : RATE_LIMITS.match.free;
+  const rl = checkRateLimit(`${userId}:match`, limit, RATE_LIMITS.match.windowMs);
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { error: "Rate limit exceeded. Upgrade to Pro for higher limits." },
+      { status: 429, headers: { "X-RateLimit-Remaining": "0", "X-RateLimit-Reset": String(rl.resetAt) } }
+    );
+  }
+
   const { id } = await params;
 
   const body = await req.json().catch(() => null);

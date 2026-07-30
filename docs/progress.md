@@ -6,7 +6,7 @@
 
 ---
 
-## Todo status (6)
+## Todo status (10)
 
 | # | ID | Task | Status |
 |---|----|------|--------|
@@ -16,8 +16,12 @@
 | 4 | `apply-studio` | Cover letter studio + Assisted checklist + pipeline Kanban | **completed** |
 | 5 | `billing-insights` | Stripe / Pro gating + conversion cockpit | **completed** |
 | 6 | `semi-auto` | Phase 2: Chrome extension semi-auto fill + SEA/remote trends | **completed** |
+| 7 | `stripe-billing` | Real Stripe checkout + webhook → flip user.plan to PRO | **completed** |
+| 8 | `multi-resume` | Multi-resume targeting + A/B outcome tracking | **completed** |
+| 9 | `reminders-share` | Follow-up reminders + shareable reports | **completed** |
+| 10 | `admin-metering` | Admin dashboard + per-user rate limiting | **completed** |
 
-**Overall:** 6 / 6 completed · All phases done ✅
+**Overall:** 10 / 10 completed · Phase 1–3 done ✅
 
 ---
 
@@ -113,6 +117,40 @@
 
 **Key paths:** `extension/`, `src/app/(app)/settings/settings-client.tsx`, `src/app/(app)/insights/page.tsx`, `src/app/api/extension/push-job/route.ts`
 
+### 7. Stripe billing — completed
+
+- **Checkout flow** — Settings page now has working "Upgrade to Pro" button → POST `/api/stripe/checkout` → redirect to Stripe Checkout session
+- **Webhook handler** — Processes `checkout.session.completed` (upgrade to PRO) and `customer.subscription.deleted` (downgrade to FREE) with signature verification
+- **Customer portal** — PRO users can manage/cancel subscription via Stripe portal
+- **Settings UI** — Plan card shows current plan, limits, upgrade CTA (FREE) or manage subscription button (PRO)
+
+**Key paths:** `src/app/(app)/settings/settings-client.tsx` (PlanCardClient), `src/app/api/stripe/checkout/route.ts`, `src/app/api/stripe/webhook/route.ts`, `src/app/api/stripe/portal/route.ts`
+
+### 8. Multi-resume targeting + A/B — completed
+
+- **Resume role family tagging** — Resume detail page now has a dropdown to tag resumes as BACKEND / FULLSTACK / DATA / DEVOPS / MOBILE / OTHER
+- **Auto-suggest in workbench** — Job workbench auto-selects the best-fit resume by matching JD title keywords against resume roleFamily tags; shows "★ Recommended" badge
+- **A/B variant comparison** — Insights page now shows interview rate by resume variant tag (when 2+ variants are used), enabling data-driven resume tailoring decisions
+
+**Key paths:** `src/app/(app)/resumes/[id]/role-family-tagger.tsx`, `src/app/(app)/jobs/[id]/workbench-client.tsx`, `src/app/(app)/insights/page.tsx`, `src/app/api/resumes/[id]/route.ts`
+
+### 9. Follow-up reminders + shareable reports — completed
+
+- **Reminder interval setting** — Settings page now has a slider to configure reminder days (1–30, default 7)
+- **Vercel cron config** — `vercel.json` schedules daily reminder check at 9:00 AM UTC
+- **Share button in workbench** — "Generate share link" button creates a 30-day expiring token → shows URL with copy-to-clipboard
+- **Public report page** — `/report/[token]` renders read-only match report with score, skills, seniority, and location risk
+
+**Key paths:** `src/app/(app)/settings/settings-client.tsx`, `src/app/(app)/jobs/[id]/workbench-client.tsx`, `src/app/api/share/route.ts`, `src/app/report/[token]/page.tsx`, `vercel.json`
+
+### 10. Admin metering — completed
+
+- **Admin dashboard** — `/admin` page shows total users, jobs, resumes, applications, plan distribution (FREE vs PRO), application status breakdown, extension usage count, and last 20 pipeline events
+- **Admin-only access** — 403 screen for non-admin users; nav link conditionally shown only when `user.isAdmin` is true
+- **Rate limiting** — In-memory per-user rate limiter (`src/lib/rate-limit.ts`) enforced on match runs (20 free / 200 pro per hour) and letter generation (10 free / 100 pro per hour); returns 429 with upgrade prompt
+
+**Key paths:** `src/app/(app)/admin/page.tsx`, `src/app/(app)/admin/admin-client.tsx`, `src/lib/rate-limit.ts`, `src/components/nav-links.tsx`, `src/middleware.ts`
+
 ---
 
 ## Stack snapshot (as built)
@@ -122,14 +160,17 @@
 | App | Next.js App Router + TypeScript |
 | UI | Tailwind v4, custom workstation theme |
 | DB | Prisma + SQLite (local); Postgres/Supabase for production |
-| Auth | Auth.js credentials |
+| Auth | Auth.js credentials + Google OAuth (optional) |
 | Scoring | Deterministic ATS + match engines; optional OpenAI enrichment |
+| Billing | Stripe Checkout + Webhook + Customer Portal |
 | Plans | FREE / PRO limits in `src/lib/constants.ts` |
 | Extension | Chrome Manifest V3, content + popup + background scripts |
+| Email | Resend (dev stub fallback) |
+| Rate limiting | In-memory per-user, plan-aware |
+| Cron | Vercel Cron for daily follow-up reminders |
 
 ---
 
-## All 6 phases complete ✅
+## Phases 1–3 complete ✅
 
-CareerForge is a fully functional premium job tracking & application conversion workstation.
-No pending work remains for the planned scope.
+CareerForge is a fully functional premium job tracking & application conversion workstation with real Stripe billing, resume targeting, follow-up reminders, shareable reports, and admin metering.

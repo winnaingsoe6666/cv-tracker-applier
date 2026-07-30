@@ -12,6 +12,7 @@ interface Resume {
   id: string;
   title: string;
   isBase: boolean;
+  roleFamily: string | null;
 }
 
 interface Application {
@@ -23,6 +24,7 @@ interface Application {
 }
 
 interface MatchData {
+  matchReportId: string;
   matchScore: number;
   atsScore: number;
   matchBreakdown: MatchBreakdown;
@@ -36,6 +38,7 @@ interface WorkbenchClientProps {
   lastMatchData: MatchData | null;
   atsThreshold: number;
   matchThreshold: number;
+  jobTitle: string;
 }
 
 type Tab = "match" | "ats";
@@ -47,15 +50,39 @@ export function WorkbenchClient({
   lastMatchData,
   atsThreshold,
   matchThreshold,
+  jobTitle,
 }: WorkbenchClientProps) {
   const router = useRouter();
-  const [selectedResumeId, setSelectedResumeId] = useState<string>(
-    application.resumeId ?? resumes[0]?.id ?? ""
-  );
+
+  // Auto-suggest: find best resume by matching roleFamily to JD keywords
+  const suggestedId = (() => {
+    if (application.resumeId) return application.resumeId; // user already picked
+    if (resumes.length === 0) return "";
+    const title = jobTitle.toLowerCase();
+    const roleKeywords: Record<string, string[]> = {
+      BACKEND: ["backend", "server", "api", "java", "go", "golang", "python", "node", "rails"],
+      FULLSTACK: ["fullstack", "full-stack", "full stack", "react", "vue", "angular"],
+      DATA: ["data", "ml", "machine learning", "analytics", "python", "spark", "sql"],
+      DEVOPS: ["devops", "sre", "infrastructure", "cloud", "kubernetes", "docker", "aws", "gcp"],
+      MOBILE: ["mobile", "ios", "android", "flutter", "react native", "swift", "kotlin"],
+    };
+    for (const [family, keywords] of Object.entries(roleKeywords)) {
+      if (keywords.some((kw) => title.includes(kw))) {
+        const match = resumes.find((r) => r.roleFamily === family);
+        if (match) return match.id;
+      }
+    }
+    return resumes[0]?.id ?? "";
+  })();
+
+  const [selectedResumeId, setSelectedResumeId] = useState<string>(suggestedId);
   const [running, setRunning] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [currentMatchData, setCurrentMatchData] = useState<MatchData | null>(lastMatchData);
   const [tab, setTab] = useState<Tab>("match");
+  const [shareUrl, setShareUrl] = useState<string | null>(null);
+  const [shareLoading, setShareLoading] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   async function runMatch() {
     if (!selectedResumeId) return;
@@ -84,6 +111,28 @@ export function WorkbenchClient({
     router.refresh();
   }
 
+  async function shareReport() {
+    if (!currentMatchData?.matchReportId) return;
+    setShareLoading(true);
+    const res = await fetch("/api/share", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ matchReportId: currentMatchData.matchReportId }),
+    });
+    setShareLoading(false);
+    if (res.ok) {
+      const data = await res.json();
+      setShareUrl(`${window.location.origin}${data.url}`);
+    }
+  }
+
+  async function copyShareUrl() {
+    if (!shareUrl) return;
+    await navigator.clipboard.writeText(shareUrl);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
+
   const displayAts = currentMatchData?.atsScore ?? application.atsScoreSnapshot;
   const displayMatch = currentMatchData?.matchScore ?? application.matchScoreSnapshot;
 
@@ -103,18 +152,26 @@ export function WorkbenchClient({
               </a>
             </p>
           ) : (
-            <select
-              className="w-full rounded-lg border border-edge bg-surface2 px-3 py-2 text-sm text-foreground outline-none transition focus:border-accent/60 focus:ring-1 focus:ring-accent/30"
-              value={selectedResumeId}
-              onChange={(e) => setSelectedResumeId(e.target.value)}
-            >
-              {resumes.map((r) => (
-                <option key={r.id} value={r.id}>
-                  {r.title}
-                  {!r.isBase ? " (variant)" : ""}
-                </option>
-              ))}
-            </select>
+            <>
+              <select
+                className="w-full rounded-lg border border-edge bg-surface2 px-3 py-2 text-sm text-foreground outline-none transition focus:border-accent/60 focus:ring-1 focus:ring-accent/30"
+                value={selectedResumeId}
+                onChange={(e) => setSelectedResumeId(e.target.value)}
+              >
+                {resumes.map((r) => (
+                  <option key={r.id} value={r.id}>
+                    {r.title}
+                    {!r.isBase ? " (variant)" : ""}
+                    {r.id === suggestedId && r.id !== application.resumeId ? " ★ Recommended" : ""}
+                  </option>
+                ))}
+              </select>
+              {suggestedId && suggestedId !== application.resumeId && (
+                <p className="mt-1.5 text-[11px] text-accent">
+                  ★ Best-fit resume auto-selected by role family
+                </p>
+              )}
+            </>
           )}
         </div>
 
@@ -164,6 +221,34 @@ export function WorkbenchClient({
         applicationId={application.id}
         currentStatus={application.status}
       />
+
+      {/* Share report */}
+      {currentMatchData?.matchReportId && (
+        <div className="flex items-center gap-3 rounded-xl border border-edge bg-surface p-3">
+          <span className="text-xs text-muted">Share this match report:</span>
+          {shareUrl ? (
+            <div className="flex flex-1 items-center gap-2">
+              <code className="flex-1 truncate rounded border border-edge bg-surface2 px-2 py-1 font-mono text-[11px] text-faint">
+                {shareUrl}
+              </code>
+              <button
+                onClick={copyShareUrl}
+                className="shrink-0 rounded-lg border border-accent/40 bg-accent/10 px-3 py-1.5 text-xs font-medium text-accent transition hover:bg-accent/20"
+              >
+                {copied ? "✓ Copied" : "Copy link"}
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={shareReport}
+              disabled={shareLoading}
+              className="rounded-lg border border-edge bg-surface2 px-3 py-1.5 text-xs font-medium text-foreground transition hover:border-accent/50 hover:text-accent disabled:opacity-50"
+            >
+              {shareLoading ? "Generating…" : "Generate share link"}
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Detailed reports */}
       {currentMatchData ? (

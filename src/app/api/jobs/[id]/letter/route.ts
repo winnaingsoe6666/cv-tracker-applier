@@ -5,6 +5,7 @@ import { parseResumeText, ParsedResume } from "@/lib/parse";
 import { generateLetter } from "@/lib/letters";
 import { polishLetter, llmEnabled } from "@/lib/llm";
 import { PLANS, Plan } from "@/lib/constants";
+import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 import type { MatchBreakdown } from "@/lib/scoring/match";
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -14,6 +15,16 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 
   const user = await db.user.findUnique({ where: { id: userId } });
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  // Rate limit check
+  const letterLimit = user.plan === "PRO" ? RATE_LIMITS.letter.pro : RATE_LIMITS.letter.free;
+  const rl = checkRateLimit(`${userId}:letter`, letterLimit, RATE_LIMITS.letter.windowMs);
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { error: "Rate limit exceeded. Upgrade to Pro for higher limits." },
+      { status: 429, headers: { "X-RateLimit-Remaining": "0", "X-RateLimit-Reset": String(rl.resetAt) } }
+    );
+  }
 
   const monthStart = new Date();
   monthStart.setDate(1);

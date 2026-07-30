@@ -76,6 +76,19 @@ export default async function InsightsPage() {
     if (["INTERVIEW", "OFFER"].includes(a.status)) marketStats[m].interviewed++;
   }
 
+  // By resume variant (A/B tracking)
+  type VariantStat = { applied: number; interviewed: number; rate: number };
+  const variantStats: Record<string, VariantStat> = {};
+  for (const a of applied) {
+    const v = a.resumeVariantTag ?? "Untagged";
+    if (!variantStats[v]) variantStats[v] = { applied: 0, interviewed: 0, rate: 0 };
+    variantStats[v].applied++;
+    if (["INTERVIEW", "OFFER"].includes(a.status)) variantStats[v].interviewed++;
+  }
+  for (const v of Object.values(variantStats)) {
+    v.rate = v.applied > 0 ? Math.round((v.interviewed / v.applied) * 100) : 0;
+  }
+
   // Avg match score of applications that got interviews vs not
   const interviewedScores = interviewed
     .map((a) => a.matchScoreSnapshot)
@@ -207,6 +220,31 @@ export default async function InsightsPage() {
             </div>
           )}
         </Card>
+
+        {/* Resume variant A/B */}
+        {Object.keys(variantStats).length > 1 && (
+          <Card>
+            <CardTitle sub="Which resume variant gets more interviews?">Resume Variant A/B</CardTitle>
+            <div className="space-y-3">
+              {Object.entries(variantStats)
+                .sort((a, b) => b[1].applied - a[1].applied)
+                .map(([variant, s]) => (
+                  <div key={variant}>
+                    <div className="mb-1 flex items-center justify-between text-xs">
+                      <span className="font-medium text-foreground">{variant}</span>
+                      <span className="text-muted">
+                        {s.interviewed}/{s.applied} →{" "}
+                        <span className={s.rate >= 20 ? "font-semibold text-accent" : "text-warn"}>
+                          {s.rate}%
+                        </span>
+                      </span>
+                    </div>
+                    <Bar value={s.rate} tone={s.rate >= 20 ? "accent" : s.rate >= 10 ? "warn" : "danger"} />
+                  </div>
+                ))}
+            </div>
+          </Card>
+        )}
 
         {/* Score advantage panel */}
         {(avgInterviewScore !== null || avgRejectedScore !== null) && (

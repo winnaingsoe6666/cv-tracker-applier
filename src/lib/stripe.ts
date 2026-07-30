@@ -12,7 +12,7 @@ export function getStripe(): Stripe | null {
   const key = process.env.STRIPE_SECRET_KEY;
   if (!key) return null;
   if (!_stripe) {
-    _stripe = new Stripe(key, { apiVersion: "2025-06-30.basil" });
+    _stripe = new Stripe(key, { apiVersion: "2026-07-29.dahlia" });
   }
   return _stripe;
 }

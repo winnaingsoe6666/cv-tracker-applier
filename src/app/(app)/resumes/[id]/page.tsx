@@ -7,6 +7,7 @@ import type { ParsedResume } from "@/lib/parse";
 import type { AtsBreakdown, Severity } from "@/lib/scoring/ats";
 import { Badge, Bar, Card, CardTitle, ScoreRing, scoreTone } from "@/components/ui";
 import { CritiquePanel, DeleteResumeButton } from "@/components/resume-actions";
+import { RoleFamilyTagger } from "./role-family-tagger";
 
 const severityTone: Record<Severity, "danger" | "warn" | "accent"> = {
   critical: "danger",
@@ -96,6 +97,10 @@ export default async function ResumeDetailPage({ params }: { params: Promise<{ i
         </Card>
 
         <div className="space-y-4">
+          <Card>
+            <CardTitle sub="Tag this resume for auto-matching in the workbench.">Role Family</CardTitle>
+            <RoleFamilyTagger resumeId={resume.id} currentRoleFamily={resume.roleFamily} />
+          </Card>
           <Card>
             <CardTitle>Parsed profile</CardTitle>
             <dl className="space-y-2 text-sm">

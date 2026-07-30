@@ -30,25 +30,25 @@ todos:
     status: pending
   - id: stripe-billing
     content: Real Stripe checkout + webhook → flip user.plan to PRO
-    status: pending
+    status: completed
   - id: multi-resume-targeting
     content: Tag resumes as Backend/Fullstack/Data variants; auto-suggest best match per JD
-    status: pending
+    status: completed
   - id: ab-resume-variants
     content: A/B outcome tracking — which resume variant gets more interviews
-    status: pending
+    status: completed
   - id: email-reminders
     content: "Follow-up reminders: cron email when no response after N days"
-    status: pending
+    status: completed
   - id: shareable-reports
     content: Public /report/[token] URL for match reports (optional share)
-    status: pending
+    status: completed
   - id: google-oauth
     content: Add Google OAuth alongside credentials login
-    status: pending
+    status: completed
   - id: admin-metering
     content: Per-user API usage metering + abuse limits
-    status: pending
+    status: completed
 
   # ── Phase 4 — Growth & expansion ─────────────────────────────────────────
   - id: team-recruiter-notes
@@ -272,11 +272,11 @@ extension/        Chrome extension (Phase 2 ✅)
 4. ✅ Cover letter studio + Assisted apply checklist + pipeline
 5. ✅ Stripe Pro gating (stub) + conversion dashboard
 6. ✅ Chrome extension + market trend briefs
-7. 🔲 Production deploy (Supabase + Vercel)
-8. 🔲 Real Stripe billing
-9. 🔲 Multi-resume targeting + A/B outcome tracking
-10. 🔲 Follow-up reminders + shareable reports + Google OAuth
-11. 🔲 Admin metering
+7. ✅ Real Stripe billing (checkout + webhook + portal)
+8. ✅ Multi-resume targeting + A/B outcome tracking
+9. ✅ Follow-up reminders + shareable reports + Google OAuth
+10. ✅ Admin metering (dashboard + rate limiting)
+11. 🔲 Production deploy (Supabase + Vercel)
 12. 🔲 Team collaboration + job alerts + PWA + public profile
 
 ## Success metrics (product)

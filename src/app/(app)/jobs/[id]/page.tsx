@@ -29,7 +29,7 @@ export default async function JobWorkbenchPage({
     db.resume.findMany({
       where: { userId: user.id },
       orderBy: [{ isBase: "desc" }, { createdAt: "desc" }],
-      select: { id: true, title: true, isBase: true },
+      select: { id: true, title: true, isBase: true, roleFamily: true },
     }),
   ]);
 
@@ -40,6 +40,7 @@ export default async function JobWorkbenchPage({
 
   // Load the latest match + ATS reports if they exist
   let lastMatchData: {
+    matchReportId: string;
     matchScore: number;
     atsScore: number;
     matchBreakdown: MatchBreakdown;
@@ -59,6 +60,7 @@ export default async function JobWorkbenchPage({
     ]);
     if (matchReport && atsReport) {
       lastMatchData = {
+        matchReportId: matchReport.id,
         matchScore: matchReport.score,
         atsScore: atsReport.score,
         matchBreakdown: JSON.parse(matchReport.breakdownJson) as MatchBreakdown,
@@ -176,6 +178,7 @@ export default async function JobWorkbenchPage({
               lastMatchData={lastMatchData}
               atsThreshold={user.gateAtsThreshold}
               matchThreshold={user.gateMatchThreshold}
+              jobTitle={job.title}
             />
           ) : (
             <p className="text-sm text-muted">

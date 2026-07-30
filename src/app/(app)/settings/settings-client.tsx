@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { inputCls, btnPrimary, btnSecondary, Card, CardTitle } from "@/components/ui";
+import { inputCls, btnPrimary, btnSecondary, Card, CardTitle, Badge } from "@/components/ui";
 
 interface UserData {
   name: string;
@@ -13,6 +13,7 @@ interface UserData {
   location: string;
   gateAtsThreshold: number;
   gateMatchThreshold: number;
+  reminderDays: number;
 }
 
 export function SettingsClient({ user }: { user: UserData }) {
@@ -40,6 +41,7 @@ export function SettingsClient({ user }: { user: UserData }) {
         location: form.location || null,
         gateAtsThreshold: form.gateAtsThreshold,
         gateMatchThreshold: form.gateMatchThreshold,
+        reminderDays: form.reminderDays,
       }),
     });
     setSaving(false);
@@ -135,7 +137,19 @@ export function SettingsClient({ user }: { user: UserData }) {
         </p>
       </Card>
 
-
+      {/* Follow-up reminders */}
+      <Card>
+        <CardTitle sub="Get a reminder when no response after applying">Follow-up Reminders</CardTitle>
+        <ThresholdSlider
+          label="Reminder interval"
+          hint="Days after applying before sending a follow-up reminder email"
+          value={form.reminderDays}
+          onChange={(v) => setField("reminderDays", v)}
+        />
+        <p className="mt-3 text-[11px] text-faint">
+          A daily cron job checks for stale applications and sends reminder emails via Resend (set <code className="rounded bg-surface2 px-1 py-0.5 font-mono text-[10px]">RESEND_API_KEY</code> in production).
+        </p>
+      </Card>
 
       {/* Save row */}
       <div className="flex items-center gap-3">
@@ -312,6 +326,133 @@ export function ExtensionTokenPanel({
         </div>
       </div>
     </Card>
+  );
+}
+
+// ─── Plan Card (Stripe upgrade / manage) ──────────────────────────────────────
+
+export function PlanCardClient({
+  plan,
+  planLabel,
+  maxResumes,
+  maxJobs,
+  maxLetters,
+  hasStripeCustomer,
+  upgraded,
+}: {
+  plan: "FREE" | "PRO";
+  planLabel: string;
+  maxResumes: number;
+  maxJobs: number;
+  maxLetters: number;
+  hasStripeCustomer: boolean;
+  upgraded: boolean;
+}) {
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [msg, setMsg] = useState<{ text: string; ok: boolean } | null>(
+    upgraded ? { text: "Upgrade successful! Welcome to Pro.", ok: true } : null
+  );
+
+  async function handleUpgrade() {
+    setLoading(true);
+    setMsg(null);
+    try {
+      const res = await fetch("/api/stripe/checkout", { method: "POST" });
+      const data = await res.json();
+      if (res.ok && data.url) {
+        window.location.href = data.url;
+      } else {
+        setMsg({ text: data.error ?? "Failed to start checkout.", ok: false });
+        setLoading(false);
+      }
+    } catch {
+      setMsg({ text: "Network error.", ok: false });
+      setLoading(false);
+    }
+  }
+
+  async function handleManage() {
+    setLoading(true);
+    setMsg(null);
+    try {
+      const res = await fetch("/api/stripe/portal", { method: "POST" });
+      const data = await res.json();
+      if (res.ok && data.url) {
+        window.location.href = data.url;
+      } else {
+        setMsg({ text: data.error ?? "Failed to open portal.", ok: false });
+        setLoading(false);
+      }
+    } catch {
+      setMsg({ text: "Network error.", ok: false });
+      setLoading(false);
+    }
+  }
+
+  return (
+    <Card>
+      <CardTitle>Plan</CardTitle>
+      <div className="flex items-start justify-between gap-4">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <Badge tone={plan === "PRO" ? "accent" : "neutral"}>{planLabel}</Badge>
+            {plan === "FREE" && (
+              <span className="text-xs text-muted">Free tier limits apply</span>
+            )}
+          </div>
+          <div className="mt-2 grid grid-cols-3 gap-3">
+            <PlanLimit label="Resumes" value={maxResumes} />
+            <PlanLimit label="Jobs" value={maxJobs} />
+            <PlanLimit label="Letters/mo" value={maxLetters} />
+          </div>
+        </div>
+
+        {plan === "FREE" ? (
+          <div className="shrink-0 rounded-xl border border-accent/30 bg-accent/5 p-4 text-right">
+            <p className="text-xs font-semibold text-accent">Upgrade to Pro</p>
+            <p className="mt-1 text-[11px] text-muted">
+              50 resumes · 1000 jobs · Unlimited letters
+            </p>
+            <button
+              onClick={handleUpgrade}
+              disabled={loading}
+              className="mt-3 w-full rounded-lg bg-accent-dim px-3 py-1.5 text-xs font-semibold text-[#06281c] transition hover:bg-accent disabled:opacity-50"
+            >
+              {loading ? "Redirecting…" : "Upgrade now"}
+            </button>
+          </div>
+        ) : (
+          <div className="shrink-0 rounded-xl border border-accent/30 bg-accent/5 p-4 text-right">
+            <p className="text-xs font-semibold text-accent">Pro Plan</p>
+            <p className="mt-1 text-[11px] text-muted">
+              50 resumes · 1000 jobs · Unlimited letters
+            </p>
+            {hasStripeCustomer && (
+              <button
+                onClick={handleManage}
+                disabled={loading}
+                className="mt-3 w-full rounded-lg border border-accent/40 bg-accent/10 px-3 py-1.5 text-xs font-semibold text-accent transition hover:bg-accent/20 disabled:opacity-50"
+              >
+                {loading ? "Opening…" : "Manage subscription"}
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+      {msg && (
+        <p className={`mt-3 text-xs ${msg.ok ? "text-accent" : "text-danger"}`}>{msg.text}</p>
+      )}
+    </Card>
+  );
+}
+
+function PlanLimit({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="rounded-lg border border-edge bg-surface2 px-3 py-2 text-center">
+      <p className="text-base font-bold text-foreground">{value >= 1000 ? "∞" : value}</p>
+      <p className="text-[10px] text-faint">{label}</p>
+    </div>
   );
 }
 

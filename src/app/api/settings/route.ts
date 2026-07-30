@@ -11,6 +11,7 @@ const schema = z.object({
   location: z.string().max(100).optional().nullable(),
   gateAtsThreshold: z.number().int().min(0).max(100).optional(),
   gateMatchThreshold: z.number().int().min(0).max(100).optional(),
+  reminderDays: z.number().int().min(1).max(30).optional(),
 });
 
 export async function PATCH(req: Request) {
@@ -34,6 +35,7 @@ export async function PATCH(req: Request) {
       ...(data.location !== undefined ? { location: data.location } : {}),
       ...(data.gateAtsThreshold !== undefined ? { gateAtsThreshold: data.gateAtsThreshold } : {}),
       ...(data.gateMatchThreshold !== undefined ? { gateMatchThreshold: data.gateMatchThreshold } : {}),
+      ...(data.reminderDays !== undefined ? { reminderDays: data.reminderDays } : {}),
     },
   });
 

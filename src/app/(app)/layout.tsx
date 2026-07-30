@@ -19,7 +19,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-accent-dim text-sm font-bold text-[#06281c]">C</div>
           <span className="font-semibold tracking-tight">CareerForge</span>
         </Link>
-        <NavLinks />
+        <NavLinks isAdmin={user.isAdmin} />
         <div className="mt-auto border-t border-edge px-5 py-4">
           <div className="flex items-center justify-between">
             <div className="min-w-0">

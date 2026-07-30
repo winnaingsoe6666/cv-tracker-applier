@@ -125,27 +125,27 @@ export default async function PublicReportPage({
           )}
 
           {/* Seniority */}
-          {breakdown.seniorityMatch !== undefined && (
+          {breakdown.seniority && (
             <div className="rounded-xl border border-[#30363d] bg-[#161b22] p-5">
               <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-[#6e7681]">
                 Seniority Fit
               </p>
-              <Bar value={breakdown.seniorityMatch} />
-              <p className="mt-1.5 text-[11px] text-[#8b949e]">{breakdown.seniorityNote ?? ""}</p>
+              <Bar value={breakdown.seniority.ok ? 100 : 40} />
+              <p className="mt-1.5 text-[11px] text-[#8b949e]">{breakdown.seniority.verdict}</p>
             </div>
           )}
 
           {/* Location risk */}
-          {breakdown.locationRisk !== undefined && (
+          {breakdown.locationRisk && (
             <div className="rounded-xl border border-[#30363d] bg-[#161b22] p-5">
               <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-[#6e7681]">
                 Location / Visa Risk
               </p>
               <Bar
-                value={100 - breakdown.locationRisk}
-                tone={breakdown.locationRisk > 50 ? "danger" : breakdown.locationRisk > 20 ? "warn" : "accent"}
+                value={breakdown.locationRisk.level === "low" ? 90 : breakdown.locationRisk.level === "medium" ? 60 : 25}
+                tone={breakdown.locationRisk.level === "high" ? "danger" : breakdown.locationRisk.level === "medium" ? "warn" : "accent"}
               />
-              <p className="mt-1.5 text-[11px] text-[#8b949e]">{breakdown.locationNote ?? ""}</p>
+              <p className="mt-1.5 text-[11px] text-[#8b949e]">{breakdown.locationRisk.note}</p>
             </div>
           )}
         </div>
