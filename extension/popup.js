@@ -186,7 +186,7 @@ pushBtn.addEventListener("click", async () => {
       pushBtn.disabled = false;
       pushLabel.textContent = "Push to CareerForge";
     }
-  } catch (err) {
+  } catch {
     showToast(toast, `✗ Network error — is CareerForge running at ${settings.appUrl}?`, "error");
     pushBtn.disabled = false;
     pushLabel.textContent = "Push to CareerForge";

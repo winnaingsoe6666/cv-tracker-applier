@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { requireUser } from "@/lib/session";
 import { db } from "@/lib/db";
 import { KanbanBoard } from "@/components/kanban-board";
@@ -58,12 +59,12 @@ export default async function PipelinePage() {
           <p className="mt-1 max-w-sm text-xs text-muted">
             Track a job and run the match engine — every application lands here so you can manage the full pipeline.
           </p>
-          <a
+          <Link
             href="/jobs"
             className="mt-4 rounded-lg bg-accent-dim px-4 py-2 text-sm font-semibold text-[#06281c] transition hover:bg-accent"
           >
             Track a job
-          </a>
+          </Link>
         </div>
       ) : (
         <KanbanBoard

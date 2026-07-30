@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 /**
  * generate-icons.js
  * Run once with: node generate-icons.js
