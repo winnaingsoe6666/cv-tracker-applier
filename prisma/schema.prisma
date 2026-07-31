@@ -1,13 +1,11 @@
 // CareerForge — premium job tracker, matcher & applier
-// Local dev uses SQLite. For production, switch provider to "postgresql"
-// and point DATABASE_URL at Supabase/Postgres (see README).
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
