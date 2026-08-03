@@ -78,8 +78,15 @@ export const RATE_LIMITS = {
 export type RateLimitEndpoint = keyof typeof RATE_LIMITS;
 
 /** Extract client IP from request headers (works with Vercel/proxy). */
-export function getClientIp(req: Request): string {
-  const forwarded = req.headers.get("x-forwarded-for");
-  if (forwarded) return forwarded.split(",")[0].trim();
+export function getClientIp(req: unknown): string {
+  try {
+    const headers = (req as Request)?.headers;
+    if (typeof headers?.get === "function") {
+      const forwarded = headers.get("x-forwarded-for");
+      if (forwarded) return forwarded.split(",")[0].trim();
+    }
+  } catch {
+    // ignore
+  }
   return "127.0.0.1";
 }
