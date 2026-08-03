@@ -2,13 +2,15 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { scoreWorthiness } from "@/lib/scoring/worthiness";
 import { MARKETS, SENIORITIES } from "@/lib/constants";
+import { hashToken } from "@/lib/crypto";
 
 /** Helper — validate Bearer token and return userId or null. */
 async function resolveExtensionUser(req: Request): Promise<string | null> {
   const auth = req.headers.get("authorization") ?? "";
-  const token = auth.startsWith("Bearer ") ? auth.slice(7).trim() : null;
-  if (!token) return null;
-  const user = await db.user.findUnique({ where: { apiToken: token }, select: { id: true } });
+  const rawToken = auth.startsWith("Bearer ") ? auth.slice(7).trim() : null;
+  if (!rawToken) return null;
+  const hashedToken = hashToken(rawToken);
+  const user = await db.user.findUnique({ where: { apiToken: hashedToken }, select: { id: true } });
   return user?.id ?? null;
 }
 

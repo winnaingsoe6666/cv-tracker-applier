@@ -5,7 +5,7 @@ import { db } from "@/lib/db";
 /** For server components/pages: returns the full user row or redirects to login. */
 export async function requireUser() {
   const session = await auth();
-  const id = (session?.user as { id?: string } | undefined)?.id;
+  const id = session?.user?.id;
   if (!id) redirect("/login");
   const user = await db.user.findUnique({ where: { id } });
   if (!user) redirect("/login");
@@ -15,5 +15,5 @@ export async function requireUser() {
 /** For API routes: returns the user id or null (caller returns 401). */
 export async function apiUserId(): Promise<string | null> {
   const session = await auth();
-  return (session?.user as { id?: string } | undefined)?.id ?? null;
+  return session?.user?.id ?? null;
 }

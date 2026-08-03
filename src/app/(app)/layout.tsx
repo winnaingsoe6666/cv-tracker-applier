@@ -7,7 +7,7 @@ import { NavLinks } from "@/components/nav-links";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const session = await auth();
-  const id = (session?.user as { id?: string } | undefined)?.id;
+  const id = session?.user?.id;
   if (!id) redirect("/login");
   const user = await db.user.findUnique({ where: { id } });
   if (!user) redirect("/login");

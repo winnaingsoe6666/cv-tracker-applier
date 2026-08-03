@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { db } from "@/lib/db";
+import { checkRateLimit, getClientIp, RATE_LIMITS } from "@/lib/rate-limit";
 
 const schema = z.object({
   name: z.string().min(2).max(80),
@@ -10,6 +11,13 @@ const schema = z.object({
 });
 
 export async function POST(req: Request) {
+  // Rate limit: 3 registrations per hour per IP
+  const ip = getClientIp(req);
+  const rl = checkRateLimit(`register:${ip}`, RATE_LIMITS.register.max, RATE_LIMITS.register.windowMs);
+  if (!rl.allowed) {
+    return NextResponse.json({ error: "Too many registration attempts. Please try again later." }, { status: 429 });
+  }
+
   const body = await req.json().catch(() => null);
   const parsed = schema.safeParse(body);
   if (!parsed.success) {
