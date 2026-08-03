@@ -6,7 +6,9 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  // On Vercel, use POSTGRES_PRISMA_URL (connection pooler, port 6543).
+  // Locally, DATABASE_URL (direct connection, port 5432) works fine.
+  url      = env("POSTGRES_PRISMA_URL")
 }
 
 model User {
