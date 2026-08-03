@@ -10,8 +10,8 @@ export async function GET() {
     const { auth } = await import("@/auth");
     const session = await auth();
     authResult = session ? "SESSION_FOUND" : "NO_SESSION";
-  } catch (e: any) {
-    authResult = `ERROR: ${e.message}`;
+  } catch (e: unknown) {
+    authResult = `ERROR: ${e instanceof Error ? e.message : "unknown error"}`;
   }
   return NextResponse.json({
     NEXTAUTH_URL: process.env.NEXTAUTH_URL || "MISSING",
