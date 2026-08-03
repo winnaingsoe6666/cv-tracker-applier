@@ -19,9 +19,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       },
       async authorize(credentials, request) {
         // Rate limit: 5 login attempts per 15 min per IP
-        const ip = request ? getClientIp(request) : "unknown";
-        const rl = checkRateLimit(`login:${ip}`, RATE_LIMITS.login.max, RATE_LIMITS.login.windowMs);
-        if (!rl.allowed) return null;
+        try {
+          const ip = request ? getClientIp(request) : "unknown";
+          const rl = checkRateLimit(`login:${ip}`, RATE_LIMITS.login.max, RATE_LIMITS.login.windowMs);
+          if (!rl.allowed) return null;
+        } catch {
+          // Rate limiting is best-effort — don't block login if it fails
+        }
 
         const email = typeof credentials?.email === "string" ? credentials.email.toLowerCase().trim() : "";
         const password = typeof credentials?.password === "string" ? credentials.password : "";
