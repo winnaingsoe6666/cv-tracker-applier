@@ -3,8 +3,11 @@ import Credentials from "next-auth/providers/credentials";
 import Google from "next-auth/providers/google";
 import bcrypt from "bcryptjs";
 import { db } from "@/lib/db";
+import { checkRateLimit, getClientIp, RATE_LIMITS } from "@/lib/rate-limit";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  secret: process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET,
+  trustHost: true,
   session: { strategy: "jwt" },
   pages: { signIn: "/login" },
   providers: [
@@ -14,7 +17,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
       },
-      async authorize(credentials) {
+      async authorize(credentials, request) {
+        // Rate limit: 5 login attempts per 15 min per IP
+        const ip = request ? getClientIp(request) : "unknown";
+        const rl = checkRateLimit(`login:${ip}`, RATE_LIMITS.login.max, RATE_LIMITS.login.windowMs);
+        if (!rl.allowed) return null;
+
         const email = typeof credentials?.email === "string" ? credentials.email.toLowerCase().trim() : "";
         const password = typeof credentials?.password === "string" ? credentials.password : "";
         if (!email || !password) return null;
@@ -79,7 +87,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
     session({ session, token }) {
       if (token.uid && session.user) {
-        (session.user as { id?: string }).id = token.uid as string;
+        session.user.id = token.uid;
       }
       return session;
     },

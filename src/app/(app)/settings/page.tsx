@@ -45,7 +45,7 @@ export default async function SettingsPage() {
 
       <ExtensionTokenPanel
         hasToken={!!user.apiToken}
-        tokenSuffix={user.apiToken ? user.apiToken.slice(-8) : null}
+        tokenSuffix={user.apiToken ? "••••••••" : null}
       />
     </div>
   );

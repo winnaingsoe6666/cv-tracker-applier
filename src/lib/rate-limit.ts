@@ -69,6 +69,17 @@ export const RATE_LIMITS = {
   letter: { free: 10, pro: 100, windowMs: 60 * 60 * 1000 },
   /** Resume critique (LLM) */
   critique: { free: 5, pro: 50, windowMs: 60 * 60 * 1000 },
+  /** Login attempts per IP */
+  login: { max: 5, windowMs: 15 * 60 * 1000 }, // 5 per 15 min
+  /** Registration attempts per IP */
+  register: { max: 3, windowMs: 60 * 60 * 1000 }, // 3 per hour
 } as const;
 
 export type RateLimitEndpoint = keyof typeof RATE_LIMITS;
+
+/** Extract client IP from request headers (works with Vercel/proxy). */
+export function getClientIp(req: Request): string {
+  const forwarded = req.headers.get("x-forwarded-for");
+  if (forwarded) return forwarded.split(",")[0].trim();
+  return "127.0.0.1";
+}
