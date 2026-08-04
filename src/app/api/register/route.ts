@@ -11,26 +11,31 @@ const schema = z.object({
 });
 
 export async function POST(req: Request) {
-  // Rate limit: 3 registrations per hour per IP
-  const ip = getClientIp(req);
-  const rl = checkRateLimit(`register:${ip}`, RATE_LIMITS.register.max, RATE_LIMITS.register.windowMs);
-  if (!rl.allowed) {
-    return NextResponse.json({ error: "Too many registration attempts. Please try again later." }, { status: 429 });
-  }
+  try {
+    // Rate limit: 3 registrations per hour per IP
+    const ip = getClientIp(req);
+    const rl = checkRateLimit(`register:${ip}`, RATE_LIMITS.register.max, RATE_LIMITS.register.windowMs);
+    if (!rl.allowed) {
+      return NextResponse.json({ error: "Too many registration attempts. Please try again later." }, { status: 429 });
+    }
 
-  const body = await req.json().catch(() => null);
-  const parsed = schema.safeParse(body);
-  if (!parsed.success) {
-    return NextResponse.json({ error: "Please provide a valid name, email and a password of at least 8 characters." }, { status: 400 });
+    const body = await req.json().catch(() => null);
+    const parsed = schema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json({ error: "Please provide a valid name, email and a password of at least 8 characters." }, { status: 400 });
+    }
+    const { name, email, password } = parsed.data;
+    const existing = await db.user.findUnique({ where: { email: email.toLowerCase() } });
+    if (existing) {
+      return NextResponse.json({ error: "An account with this email already exists." }, { status: 409 });
+    }
+    const passwordHash = await bcrypt.hash(password, 12);
+    await db.user.create({
+      data: { name, email: email.toLowerCase(), passwordHash },
+    });
+    return NextResponse.json({ ok: true });
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : "Unknown error";
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
-  const { name, email, password } = parsed.data;
-  const existing = await db.user.findUnique({ where: { email: email.toLowerCase() } });
-  if (existing) {
-    return NextResponse.json({ error: "An account with this email already exists." }, { status: 409 });
-  }
-  const passwordHash = await bcrypt.hash(password, 12);
-  await db.user.create({
-    data: { name, email: email.toLowerCase(), passwordHash },
-  });
-  return NextResponse.json({ ok: true });
 }
